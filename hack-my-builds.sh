@@ -3,9 +3,10 @@ set -Eeuo pipefail
 
 echo >&2 'WARNING: this script modifies /etc/docker/daemon.json; use at your own peril'
 
+# uses https://github.com/tianon/rawdns to install pgp-happy-eyeballs in a way that can be used for "curl|bash" in Travis builds for transparently happy eyeballs
+
 set -x
 
-# https://github.com/tianon/rawdns
 bip="$(ip address show dev docker0 | awk '$1 == "inet" { print $2; exit }')"
 [ -n "$bip" ]
 ip="${bip%/*}"
