@@ -46,7 +46,7 @@ func writeResponse(resp *fasthttp.Response, w io.Writer) error {
 	statusEnd := bytes.IndexByte(head, '\n')
 	statusLine := head[:statusEnd+1]
 	statusSpace := bytes.IndexByte(statusLine, ' ')
-	head = append([]byte("Status: " + string(statusLine[statusSpace+1:])), head[statusEnd+1:]...)
+	head = append([]byte("Status: "+string(statusLine[statusSpace+1:])), head[statusEnd+1:]...)
 
 	_, err := w.Write(head)
 	if err != nil {
@@ -62,6 +62,8 @@ func writeResponse(resp *fasthttp.Response, w io.Writer) error {
 }
 
 func doTheThing(server string, ip net.IP, port, path string) {
+	thisReqStart := time.Now()
+
 	ipName := ip.String()
 	if ip.To4() == nil {
 		// must be IPv6, and need extra [...] for disambiguation
@@ -76,7 +78,7 @@ func doTheThing(server string, ip net.IP, port, path string) {
 	req.Header.SetHost(server)
 
 	// TODO consider making timeout configurable
-	err := fasthttpClient.DoTimeout(req, resp, 5*time.Second)
+	err := fasthttpClient.DoTimeout(req, resp, 1*time.Second)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: fetching %s: %s\n", url, err)
 		return
@@ -96,7 +98,7 @@ func doTheThing(server string, ip net.IP, port, path string) {
 
 	successMutex.Lock()
 
-	fmt.Fprintf(os.Stderr, "note: yay, winner (%s): %s\n", time.Since(start).Round(time.Millisecond), url)
+	fmt.Fprintf(os.Stderr, "note: yay, winner (%s / %s): %s\n", time.Since(thisReqStart).Round(time.Millisecond), time.Since(start).Round(time.Millisecond), url)
 
 	err = writeResponse(resp, os.Stdout)
 	if err != nil {
@@ -108,38 +110,39 @@ func doTheThing(server string, ip net.IP, port, path string) {
 
 func handleRequest(path string) {
 	if path == "" || path[0] != '/' {
-		path = "/"+path
+		path = "/" + path
 	}
 
-	seenIP := map[string]bool{}
+	seenIP := sync.Map{}
 
 	var wg sync.WaitGroup
 	for _, server := range servers {
-		name, port := server[0], server[1]
-		ips, err := net.LookupIP(name)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "warning: failed to lookup %s (ignoring): %s\n", name, err)
-			continue
-		}
-		for _, ip := range ips {
-			// skip any IPs we've already checked (especially since *.pool.sks-keyservers.net will likely have lots of overlapping servers)
-			ipStr := ip.String()
-			if seenIP[ipStr] {
-				continue
-			}
-			seenIP[ipStr] = true
+		wg.Add(1)
+		go func(name, port string) {
+			defer wg.Done()
 
-			wg.Add(1)
-			go func(server string, ip net.IP, port, path string) {
-				defer wg.Done()
-				doTheThing(server, ip, port, path)
-			}(name, ip, port, path)
-		}
+			ips, err := net.LookupIP(name)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "warning: failed to lookup %s (ignoring): %s\n", name, err)
+				return
+			}
+
+			for _, ip := range ips {
+				// skip any IP+port combo we've already checked (especially since *.pool.sks-keyservers.net will likely have lots of overlapping servers)
+				ipStr := ip.String() + ":" + port
+				if _, loaded := seenIP.LoadOrStore(ipStr, true); loaded {
+					continue
+				}
+
+				doTheThing(name, ip, port, path)
+			}
+		}(server[0], server[1])
 	}
 	wg.Wait()
 
 	// FAILURE!!! so sad (return the final failing result so we have something useful to report back)
 	failureMutex.Lock()
+	fmt.Fprintf(os.Stderr, "error: wow, total failure (%s)\n", time.Since(start).Round(time.Millisecond))
 	_, err := finalFailure.WriteTo(os.Stdout)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: writing final failure failed: %s\n", err)
