@@ -14,7 +14,8 @@ script:
         docker run -d --name test --dns 1.1.1.1 --dns 1.0.0.1 tianon/pgp-happy-eyeballs
         docker run --rm --link test tianon/network-toolbox:alpine gpg --keyserver test --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4
         ! docker run --rm --link test tianon/network-toolbox:alpine gpg --keyserver test --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD5
-      )
+        docker logs test
+        docker rm -vf test
 
-after_script:
-  - docker logs test
+        ./hack-my-builds.sh
+      )
