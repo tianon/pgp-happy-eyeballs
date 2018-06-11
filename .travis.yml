@@ -1,0 +1,20 @@
+language: bash
+services: docker
+
+before_script:
+  - env | sort
+  - docker pull tianon/network-toolbox:alpine
+
+script:
+  - |
+      (
+        set -Eeuo pipefail
+        set -x
+        docker build --pull -t tianon/pgp-happy-eyeballs .
+        docker run -d --name test --dns 1.1.1.1 --dns 1.0.0.1 tianon/pgp-happy-eyeballs
+        docker run --rm --link test tianon/network-toolbox:alpine gpg --keyserver test --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4
+        ! docker run --rm --link test tianon/network-toolbox:alpine gpg --keyserver test --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD5
+      )
+
+after_script:
+  - docker logs test
