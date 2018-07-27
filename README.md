@@ -10,6 +10,7 @@ PGP keyservers are flaky:
 - https://github.com/docker-library/httpd/issues/66#issuecomment-316832441
 - https://github.com/docker-library/php/issues/586
 - https://github.com/docker-library/wordpress/pull/291
+- https://github.com/docker-library/postgres/pull/471#issuecomment-407902513
 
 This tool is intended to sit in front of clients to keyservers (most easily via DNS or transparent traffic hijacking) and "multiplex" requests across several servers simultaneously, returning the fastest successful result.
 
