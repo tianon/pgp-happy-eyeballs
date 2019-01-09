@@ -57,6 +57,7 @@ docker run -d \
 				"keyserver.ubuntu.com.": { "type": "static", "cnames": [ "pgp-happy-eyeballs.docker" ], "nameservers": [ "127.0.0.1" ] },
 				"pgp.mit.edu.": { "type": "static", "cnames": [ "pgp-happy-eyeballs.docker" ], "nameservers": [ "127.0.0.1" ] },
 				"pool.sks-keyservers.net.": { "type": "static", "cnames": [ "pgp-happy-eyeballs.docker" ], "nameservers": [ "127.0.0.1" ] },
+				"hkps.pool.sks-keyservers.net.": { "type": "forwarding", "nameservers": [ "1.1.1.1", "1.0.0.1" ] },
 
 				"docker.": { "type": "containers", "socket": "unix:///var/run/docker.sock" },
 				".": { "type": "forwarding", "nameservers": [ "1.1.1.1", "1.0.0.1" ] }
