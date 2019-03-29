@@ -1,0 +1,12 @@
+requires 'Mojolicious', '== 8.13';
+requires 'Minion', '== 9.09';
+requires 'Mojo::Pg', '== 4.13';
+
+# https://mojolicious.org/perldoc/Mojolicious/Guides/FAQ#Why-doesnt-Mojolicious-have-any-dependencies
+requires 'EV';
+requires 'IO::Socket::IP';
+requires 'IO::Socket::SSL';
+requires 'IO::Socket::Socks';
+requires 'Net::DNS::Native';
+
+# vim:set ft=perl:
