@@ -209,7 +209,7 @@ get '/pks/lookup' => sub {
 			last_modified => Mojo::Date->new($res->{mtime}),
 		);
 
-		my $expires = Mojo::Date->new($res->{mtime} + $expireAfter);
+		my $expires = Mojo::Date->new($res->{mtime} + $refreshAfter);
 		$c->res->headers->expires($expires)->cache_control('public');
 
 		return $c->render(
