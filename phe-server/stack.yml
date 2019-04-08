@@ -1,0 +1,53 @@
+version: '3.7'
+
+services:
+    worker: &base
+        build: .
+        command: ./lite.pl minion worker --jobs 8
+        container_name: phe-worker
+        dns: [ '1.1.1.1', '1.0.0.1', '8.8.8.8', '8.8.4.4' ]
+        environment: [ 'PG_URL=postgresql://postgres@db' ]
+        image: tianon/pgp-happy-eyeballs:phe-server
+        read_only: true
+        restart: always
+        stop_grace_period: 1m
+        tmpfs: [ '/tmp' ]
+        volumes: [ './:/phe:ro' ]
+        working_dir: /phe
+    app:
+        <<: *base
+        command: morbo --verbose ./lite.pl
+        container_name: phe
+        ports:
+            - 11371:11371
+    cron:
+        <<: *base
+        command:
+            - bash
+            - '-c'
+            - |
+                set -Eeuo pipefail
+                set -x
+                while ./lite.pl minion job --enqueue phe_update; do
+                    sleep $$(( 60 * 60 ))
+                done
+        container_name: phe-cron
+        init: true
+    db:
+        container_name: phe-postgres
+        image: postgres:11
+        read_only: true
+        restart: always
+        stop_grace_period: 2m
+        tmpfs: [ '/run/postgresql', '/tmp' ]
+        volumes: [ 'db:/var/lib/postgresql/data' ]
+
+volumes:
+    db:
+        name: phe-postgres
+
+networks:
+    default:
+        name: phe
+        driver: overlay
+        attachable: true
