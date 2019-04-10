@@ -14,6 +14,28 @@ PGP keyservers are flaky:
 
 This tool is intended to sit in front of clients to keyservers (most easily via DNS or transparent traffic hijacking) and "multiplex" requests across several servers simultaneously, returning the fastest successful result.
 
+## How to Use
+
+The easiest/intended way to use this (and the way Tianon uses it) is to hijack your personal DNS requests and redirect relevant domains to a running instance of it. The hard part of that is doing so in a way that also affects any Docker instances and works in a way that other Docker instances can hit the running instance of `pgp-happy-eyeballs` successfully.
+
+See [rawdns](https://github.com/tianon/rawdns) for the tool Tianon uses to do; example configuration snippet:
+
+```json
+...
+	"ha.pool.sks-keyservers.net.": {
+		"type": "static",
+		"cnames": [
+			"pgp-happy-eyeballs.docker"
+		],
+		"nameservers": [
+			"127.0.0.1"
+		]
+	},
+...
+```
+
+See also [the `hack-my-builds.sh` script](hack-my-builds.sh) which is intended for use in disposable CI environments such as those provided by Travis CI (see [docker-library/php#666](https://github.com/docker-library/php/pull/666) and the linked PRs for implementation examples).
+
 ## Known Issues
 
 - using `gpg --send-keys` doesn't work, among other things (our server hijacking is a tad too aggressive -- should probably *only* perform our aggressive logic for `.../pks/lookup?op=get...` requests and pass everything else through as-is as a standard transparent proxy)
