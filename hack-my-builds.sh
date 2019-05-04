@@ -66,7 +66,7 @@ docker run -d \
 		exec rawdns /rawdns.json
 	'
 docker rm -vf pgp-happy-eyeballs &> /dev/null || :
-docker run -d --name pgp-happy-eyeballs --dns 1.1.1.1 --dns 1.0.0.1 tianon/pgp-happy-eyeballs
+docker run -d --restart always --name pgp-happy-eyeballs --dns 1.1.1.1 --dns 1.0.0.1 tianon/pgp-happy-eyeballs
 
 # trust, but verify
 docker run --rm tianon/network-toolbox:alpine gpg --keyserver fake.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4
