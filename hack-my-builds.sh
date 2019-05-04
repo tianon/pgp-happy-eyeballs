@@ -38,8 +38,14 @@ _sudo jq --arg bip "$bip" --arg ip "$ip" '
 		| _sudo tee /etc/docker/daemon.json.rawdns \
 		> /dev/null
 _sudo mv /etc/docker/daemon.json.rawdns /etc/docker/daemon.json
-_sudo service docker stop &> /dev/null || :
-_sudo service docker start
+if [ -d /run/systemd/system ] && command -v systemctl; then
+	_sudo systemctl --quiet stop docker || :
+	_sudo systemctl start docker
+	_sudo systemctl --full --no-pager status docker
+else
+	_sudo service docker stop &> /dev/null || :
+	_sudo service docker start
+fi
 docker version > /dev/null
 
 docker rm -vf rawdns &> /dev/null || :
