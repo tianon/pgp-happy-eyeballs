@@ -14,6 +14,8 @@ PGP keyservers are flaky:
 
 This tool is intended to sit in front of clients to keyservers (most easily via DNS or transparent traffic hijacking) and "multiplex" requests across several servers simultaneously, returning the fastest successful result.
 
+**Note:** if you're looking at this tool, you should seriously consider using [keys.openpgp.org](https://keys.openpgp.org/about) / ["Hagrid"](https://gitlab.com/hagrid-keyserver/hagrid) instead! (It's a refreshingly modern take on OpenPGP infrastructure in general.)
+
 ## How to Use
 
 The easiest/intended way to use this (and the way Tianon uses it) is to hijack your personal DNS requests and redirect relevant domains to a running instance of it. The hard part of that is doing so in a way that also affects any Docker instances and works in a way that other Docker instances can hit the running instance of `pgp-happy-eyeballs` successfully.
