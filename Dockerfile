@@ -1,9 +1,9 @@
-FROM golang:1.10-alpine3.7
+FROM golang:1.12-alpine
 
-RUN apk add --no-cache --virtual .lol \
-		git \
-	&& go get -v -d -u github.com/valyala/fasthttp \
-	&& apk del .lol
+RUN set -eux; \
+	apk add --no-cache --virtual .lol git; \
+	go get -v -d -u github.com/valyala/fasthttp; \
+	apk del --no-network .lol
 
 WORKDIR /go/src/pgp-happy-eyeballs
 COPY *.go ./
