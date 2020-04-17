@@ -1,14 +1,18 @@
-FROM golang:1.12-alpine
+FROM golang:1.13-buster AS build
 
-RUN set -eux; \
-	apk add --no-cache --virtual .lol git; \
-	go get -v -d -u github.com/valyala/fasthttp; \
-	apk del --no-network .lol
+WORKDIR /phe
 
-WORKDIR /go/src/pgp-happy-eyeballs
+COPY go.mod go.sum ./
+RUN go mod verify
+RUN go mod download
+
 COPY *.go ./
+RUN go build -v -tags netgo -installsuffix netgo -ldflags '-d -s -w' -o /pgp-happy-eyeballs ./...
 
-RUN go install -v -ldflags '-d -s -w' -a -tags netgo -installsuffix netgo ./...
+# # TODO make proper tagged releases (with binaries) and consume those instead
+FROM alpine:3.11
+
+COPY --from=build /pgp-happy-eyeballs /usr/local/bin/
 
 EXPOSE 9000
 CMD ["pgp-happy-eyeballs"]
