@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+echo >&2
 echo >&2 'WARNING: this script modifies /etc/docker/daemon.json; use at your own peril'
+echo >&2
 
-# uses https://github.com/tianon/rawdns to install pgp-happy-eyeballs in a way that can be used for "curl|bash" in Travis builds for transparently happy eyeballs
+# uses https://github.com/tianon/rawdns to install pgp-happy-eyeballs in a way that can be used for "curl|bash" in cloud-based CI builds for transparently happy eyeballs
 
 set -x
 
@@ -48,6 +50,8 @@ else
 fi
 docker version > /dev/null
 
+: "${squignixHostname:="$(docker container inspect squignix &> /dev/null && echo 'squignix.docker' || :)"}"
+
 docker rm -vf rawdns &> /dev/null || :
 docker run -d \
 	--restart always \
@@ -57,18 +61,37 @@ docker run -d \
 	-p "$ip":53:53/udp \
 	--dns 1.1.1.1 \
 	--dns 1.0.0.1 \
+	-e squignixHostname \
 	tianon/rawdns sh -xec '
-		cat > /rawdns.json <<-"EOF"
+		cat > /rawdns.json <<-EOF
 			{
-				"keyserver.ubuntu.com.": { "type": "static", "cnames": [ "pgp-happy-eyeballs.docker" ], "nameservers": [ "127.0.0.1" ] },
-				"pgp.mit.edu.": { "type": "static", "cnames": [ "pgp-happy-eyeballs.docker" ], "nameservers": [ "127.0.0.1" ] },
-				"pool.sks-keyservers.net.": { "type": "static", "cnames": [ "pgp-happy-eyeballs.docker" ], "nameservers": [ "127.0.0.1" ] },
-				"hkps.pool.sks-keyservers.net.": { "type": "forwarding", "nameservers": [ "1.1.1.1", "1.0.0.1" ] },
+		EOF
 
+		for host in "keyserver.ubuntu.com" "pgp.mit.edu" "pool.sks-keyservers.net"; do
+			cat >> /rawdns.json <<-EOF
+				"$host.": { "type": "static", "cnames": [ "pgp-happy-eyeballs.docker" ], "nameservers": [ "127.0.0.1" ] },
+			EOF
+		done
+		cat >> /rawdns.json <<-EOF
+			"hkps.pool.sks-keyservers.net.": { "type": "forwarding", "nameservers": [ "1.1.1.1", "1.0.0.1" ] },
+		EOF
+
+		# if we have a squignix host, we should use it!
+		if [ -n "$squignixHostname" ]; then
+			for host in "deb.debian.org" "snapshot.debian.org" "archive.ubuntu.com" "dl-cdn.alpinelinux.org"; do
+				cat >> /rawdns.json <<-EOF
+					"$host.": { "type": "static", "cnames": [ "$squignixHostname" ], "nameservers": [ "127.0.0.1" ] },
+				EOF
+			done
+		fi
+
+		cat >> /rawdns.json <<-EOF
 				"docker.": { "type": "containers", "socket": "unix:///var/run/docker.sock" },
 				".": { "type": "forwarding", "nameservers": [ "1.1.1.1", "1.0.0.1" ] }
 			}
 		EOF
+
+		cat /rawdns.json
 		exec rawdns /rawdns.json
 	'
 docker rm -vf pgp-happy-eyeballs &> /dev/null || :
@@ -76,4 +99,5 @@ docker run -d --restart always --name pgp-happy-eyeballs --dns 1.1.1.1 --dns 1.0
 
 # trust, but verify
 docker run --rm tianon/network-toolbox:alpine gpg --keyserver fake.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4
+docker logs rawdns
 docker logs pgp-happy-eyeballs

@@ -19,3 +19,8 @@ script:
 
         ./hack-my-builds.sh
       )
+
+after_script:
+    - docker images
+    - docker logs pgp-happy-eyeballs
+    - docker logs rawdns
