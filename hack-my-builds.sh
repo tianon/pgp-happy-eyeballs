@@ -61,7 +61,7 @@ docker run -d \
 	-p "$ip":53:53/udp \
 	--dns 1.1.1.1 \
 	--dns 1.0.0.1 \
-	-e squignixHostname \
+	-e squignixHostname="$squignixHostname" \
 	tianon/rawdns sh -xec '
 		cat > /rawdns.json <<-EOF
 			{
