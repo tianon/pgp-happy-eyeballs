@@ -15,15 +15,36 @@ import (
 )
 
 var servers = [][2]string{
-	{"ha.pool.sks-keyservers.net", "11371"},
-	{"p80.pool.sks-keyservers.net", "80"},
-	{"ipv4.pool.sks-keyservers.net", "11371"},
 	{"pgp.mit.edu", "11371"},
 	{"pgp.mit.edu", "80"},
 	{"keyserver.ubuntu.com", "11371"},
 	{"keyserver.ubuntu.com", "80"},
-	{"subset.pool.sks-keyservers.net", "11371"},
-	{"pool.sks-keyservers.net", "11371"},
+
+	// 2021-06-22, scraped from https://sks-keyservers.net/status/
+	{"agora.cenditel.gob.ve", "11371"},
+	{"gozer.rediris.es", "11371"},
+	{"keys.andreas-puls.de", "11371"},
+	{"keys.niif.hu", "11371"},
+	{"keys2.andreas-puls.de", "11371"},
+	{"keys3.andreas-puls.de", "11371"},
+	{"keyserver-01.2ndquadrant.com", "11371"},
+	{"keyserver-02.2ndquadrant.com", "11371"},
+	{"keyserver-03.2ndquadrant.com", "11371"},
+	{"keyserver.dobrev.eu", "11371"},
+	{"keyserver.escomposlinux.org", "11371"},
+	{"keyserver.taygeta.com", "11371"},
+	{"keyserver1.computer42.org", "11371"},
+	{"keywin.trifence.ch", "11371"},
+	{"pgp.cyberbits.eu", "11371"},
+	{"pgpkeys.eu", "11371"},
+	{"sks.hnet.se", "11371"},
+	{"sks.pgpkeys.eu", "11371"},
+	{"sks.pod01.fleetstreetops.com", "11371"},
+	{"sks.pod02.fleetstreetops.com", "11371"},
+	{"sks.pyro.eu.org", "11371"},
+	{"sks.srv.dumain.com", "11371"},
+	{"sks.stsisp.ro", "11371"},
+	{"zuul.rediris.es", "11371"},
 }
 
 var (
