@@ -1,4 +1,4 @@
-FROM golang:1.13-buster AS build
+FROM golang:1.17-bullseye AS build
 
 WORKDIR /phe
 
@@ -10,7 +10,7 @@ COPY *.go ./
 RUN go build -v -tags netgo -installsuffix netgo -ldflags '-d -s -w' -o /pgp-happy-eyeballs ./...
 
 # # TODO make proper tagged releases (with binaries) and consume those instead
-FROM alpine:3.11
+FROM alpine:3.14
 
 COPY --from=build /pgp-happy-eyeballs /usr/local/bin/
 
