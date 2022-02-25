@@ -2,8 +2,9 @@
 set -Eeuo pipefail
 
 echo >&2
-echo >&2 'WARNING: this script modifies /etc/docker/daemon.json; use at your own peril'
+echo >&2 'WARNING: this entire tool is deprecated!  Please adjust your usage accordingly.'
 echo >&2
+sleep 2
 
 # uses https://github.com/tianon/rawdns to install pgp-happy-eyeballs in a way that can be used for "curl|bash" in cloud-based CI builds for transparently happy eyeballs
 
