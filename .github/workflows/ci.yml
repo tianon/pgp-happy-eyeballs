@@ -14,20 +14,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
+      - name: Build
+        run: |
+          docker build --pull -t tianon/pgp-happy-eyeballs .
+
       - run: docker pull tianon/network-toolbox:alpine
-      - run: |
-          (
-            set -Eeuo pipefail
-            set -x
-            docker build --pull -t tianon/pgp-happy-eyeballs .
-            docker run -d --name test --dns 1.1.1.1 --dns 1.0.0.1 tianon/pgp-happy-eyeballs
-            docker run --rm --link test tianon/network-toolbox:alpine gpg --keyserver test --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4
-            ! docker run --rm --link test tianon/network-toolbox:alpine gpg --keyserver test --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD5
-            docker logs test
-            docker rm -vf test
+
+      - name: Smoke Test
+        run: |
+          docker run -d --name test --dns 1.1.1.1 --dns 1.0.0.1 tianon/pgp-happy-eyeballs
+          docker run --rm --link test tianon/network-toolbox:alpine gpg --keyserver test --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4
+          ! docker run --rm --link test tianon/network-toolbox:alpine gpg --keyserver test --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD5
+          docker logs test
+          docker rm -vf test
     
-            ./hack-my-builds.sh
-          )
+      - run: ./hack-my-builds.sh
+
       - run: docker images
+        if: ${{ always() }}
       - run: docker logs pgp-happy-eyeballs
+        if: ${{ always() }}
       - run: docker logs rawdns
+        if: ${{ always() }}
