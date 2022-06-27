@@ -74,7 +74,7 @@ docker run -d \
 			EOF
 		done
 		cat >> /rawdns.json <<-EOF
-			"hkps.pool.sks-keyservers.net.": { "type": "forwarding", "nameservers": [ "1.1.1.1", "1.0.0.1" ] },
+			"hkps.pool.sks-keyservers.net.": { "type": "forwarding", "nameservers": [ "1.1.1.1", "1.0.0.1", "8.8.8.8", "8.8.4.4" ] },
 		EOF
 
 		# if we have a squignix host, we should use it!
